@@ -7,31 +7,26 @@ pool:
     - Agent.Name -equals ag001
 
 variables:
-  azureServiceConnection: ar01com
   resourceGroupName: rg-iac-webapp
   location: centralus
-  siteName: lmliacpaas002
   templateFile: arm-templates/webapp-template.json
   parametersFile: arm-templates/webapp-parameters.json
+  webAppName: lmliacpaas001
 
 stages:
-# =========================
-# STAGE 1 - INFRA
-# =========================
 - stage: DeployInfrastructure
-  displayName: Deploy Infraestrutura
+  displayName: Deploy Infra (ARM)
   jobs:
   - job: ARM_Deployment
-    displayName: Deploy ARM
+    displayName: ARM Deployment
     steps:
     - checkout: self
 
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: Criar ou atualizar infraestrutura
+      displayName: Deploy ARM - WebApp
       inputs:
         deploymentScope: Resource Group
-        azureResourceManagerConnection: $(azureServiceConnection)
-        subscriptionId: b32b3763-730f-4373-be10-a3c6f53ecd3a
+        azureResourceManagerConnection: ar01com
         action: Create Or Update Resource Group
         resourceGroupName: $(resourceGroupName)
         location: $(location)
@@ -39,23 +34,4 @@ stages:
         csmFile: $(templateFile)
         csmParametersFile: $(parametersFile)
         deploymentMode: Incremental
-
-# =========================
-# STAGE 2 - APP
-# =========================
-- stage: DeployApp
-  displayName: Deploy Aplicação
-  dependsOn: DeployInfrastructure
-  jobs:
-  - job: Publish_HTML
-    displayName: Publicar HTML
-    steps:
-    - checkout: self
-
-    - task: AzureWebApp@1
-      displayName: Deploy Web App
-      inputs:
-        azureSubscription: $(azureServiceConnection)
-        appType: webApp
-        appName: $(siteName)
-        package: src
+        deploymentName: paas
