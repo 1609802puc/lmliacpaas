@@ -38,7 +38,7 @@ stages:
     steps:
   - task: AzureWebApp@1
       inputs:
-        azureSubscription: 'lmliacpaas002'
+        azureSubscription: 'ar01com'
         appType: 'webApp'
         appName: 'lmliacpaas002'
         package: 'src'
