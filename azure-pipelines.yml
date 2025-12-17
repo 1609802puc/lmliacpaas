@@ -36,7 +36,7 @@ stages:
   jobs:
   - job: Publish_HTML
     steps:
-  - task: AzureWebApp@1
+    - task: AzureWebApp@1
       inputs:
         azureSubscription: 'ar01com'
         appType: 'webApp'
