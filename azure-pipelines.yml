@@ -2,17 +2,22 @@ trigger:
 - main
 
 pool:
-  vmImage: 'windows-latest'
+  name: Default_2
+  demands:
+    - Agent.Name -equals ag001
 
 variables:
-  azureSubscription: 'ar01com'          # <- nome da sua Service Connection no Azure DevOps
+  azureSubscription: 'ar01com'
   resourceGroupName: 'rg-iac-webapp'
   location: 'centralus'
-  siteName: 'lmliacpaas001_171225'      # <- tem que bater com o parameters.json (ou você pode remover do parameters e usar só aqui)
+  siteName: 'lmliacpaas001_171225'
   templateFile: 'arm-templates/webapp-template.json'
   parametersFile: 'arm-templates/webapp-parameters.json'
 
 stages:
+# =========================
+# STAGE 1 - INFRA
+# =========================
 - stage: DeployInfra
   displayName: 'Provisionar PaaS (App Service)'
   jobs:
@@ -30,9 +35,8 @@ stages:
         inlineScript: |
           $rg = "$(resourceGroupName)"
           $loc = "$(location)"
-          Write-Host "Verificando RG: $rg"
 
-          az group exists --name $rg | Out-Host
+          Write-Host "Verificando RG: $rg"
           $exists = az group exists --name $rg
 
           if ($exists -eq "true") {
@@ -43,7 +47,7 @@ stages:
           }
 
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: 'Deploy ARM (criar App Service)'
+      displayName: 'Deploy ARM (App Service Plan)'
       inputs:
         deploymentScope: 'Resource Group'
         azureResourceManagerConnection: '$(azureSubscription)'
@@ -56,6 +60,9 @@ stages:
         deploymentMode: 'Incremental'
         deploymentName: 'paas-webapp-deployment'
 
+# =========================
+# STAGE 2 - APP
+# =========================
 - stage: DeploySite
   displayName: 'Publicar site (index.html)'
   dependsOn: DeployInfra
@@ -71,7 +78,7 @@ stages:
         rootFolderOrFile: 'src'
         includeRootFolder: false
         archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)\site.zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
         replaceExistingArchive: true
 
     - task: AzureWebApp@1
@@ -80,4 +87,4 @@ stages:
         azureSubscription: '$(azureSubscription)'
         appType: 'webApp'
         appName: '$(siteName)'
-        package: '$(Build.ArtifactStagingDirectory)\site.zip'
+        package: '$(Build.ArtifactStagingDirectory)/site.zip'
