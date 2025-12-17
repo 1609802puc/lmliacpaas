@@ -10,7 +10,7 @@ variables:
   azureSubscription: 'ar01com'
   resourceGroupName: 'rg-iac-webapp'
   location: 'centralus'
-  siteName: 'lmliacpaas001_171225'
+  siteName: 'lmliacpaas002'
   templateFile: 'arm-templates/webapp-template.json'
   parametersFile: 'arm-templates/webapp-parameters.json'
 
