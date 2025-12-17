@@ -1,4 +1,6 @@
 {
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
   "parameters": {
     "webAppName": {
       "type": "string"
@@ -10,7 +12,6 @@
       "type": "string"
     }
   },
-
   "resources": [
     {
       "type": "Microsoft.Web/serverfarms",
@@ -35,5 +36,11 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
       }
     }
-  ]
+  ],
+  "outputs": {
+    "siteUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('webAppName'), '.azurewebsites.net')]"
+    }
+  }
 }
