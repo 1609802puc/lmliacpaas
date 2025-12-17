@@ -36,8 +36,9 @@ stages:
   jobs:
   - job: Publish_HTML
     steps:
-    - task: AzureWebApp@1
-        azureSubscription: 'ar01com'
+  - task: AzureWebApp@1
+      inputs:
+        azureSubscription: 'AZURE_Conn'
         appType: 'webApp'
         appName: 'lmliacpaas002'
         package: 'src'
