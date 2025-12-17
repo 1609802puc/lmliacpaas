@@ -37,7 +37,6 @@ stages:
   - job: Publish_HTML
     steps:
     - task: AzureCLI@2
-  inputs:
     azureSubscription: 'ar01com'
     scriptType: 'ps'
     scriptLocation: 'inlineScript'
