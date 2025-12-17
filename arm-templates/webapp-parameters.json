@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "siteName": {
-      "value": "lmliacpaas001_171225"
+      "value": "lmliacpaas002"
     },
     "location": {
       "value": "centralus"
