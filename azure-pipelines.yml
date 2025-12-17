@@ -10,8 +10,8 @@ pool:
 variables:
   resourceGroupName: rg-iac-webapp
   location: centralus
-  templateFile: arm-templates/webapp-template.json
-  parametersFile: arm-templates/webapp-parameters.json
+  templateFile: webapp-template.json
+  parametersFile: webapp-parameters.json
 
 stages:
 - stage: DeployInfrastructure
