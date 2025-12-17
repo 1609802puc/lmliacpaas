@@ -37,9 +37,7 @@ stages:
   - job: Publish_HTML
     steps:
     - task: AzureWebApp@1
-     env:
     NODE_TLS_REJECT_UNAUTHORIZED: '0'
-  inputs:
     azureSubscription: 'ar01com'
     appType: 'webApp'
     appName: 'lmliacpaas002'
