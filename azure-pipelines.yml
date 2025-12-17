@@ -21,7 +21,7 @@ stages:
     - task: AzureResourceManagerTemplateDeployment@3
       inputs:
         deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '$(azureServiceConnection)'
+        azureResourceManagerConnection: 'ar01com'
         subscriptionId: '130e18eb-a3ff-4995-a7f8-14aec2c06c47'
         action: 'Create Or Update Resource Group'
         resourceGroupName: '$(resourceGroupName)'
@@ -38,7 +38,7 @@ stages:
     steps:
     - task: AzureWebApp@1
       inputs:
-        azureSubscription: '$(azureServiceConnection)'
+        azureSubscription: 'ar01com'
         appType: 'webApp'
         appName: 'lmliacpaas001'
         package: 'src'
