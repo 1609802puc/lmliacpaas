@@ -2,36 +2,43 @@ trigger:
 - main
 
 pool:
-  name: Default_2
+  name: Default_2 # Nome do agent pool
   demands:
-    - Agent.Name -equals ag001
+    - Agent.Name -equals ag001  # Força o uso do agente específico
+  vmImage: 'windows-latest'
 
 variables:
   resourceGroupName: rg-iac-webapp
   location: centralus
   templateFile: arm-templates/webapp-template.json
   parametersFile: arm-templates/webapp-parameters.json
-  webAppName: lmliacpaas002
 
 stages:
 - stage: DeployInfrastructure
-  displayName: Deploy Infra (ARM)
   jobs:
   - job: ARM_Deployment
-    displayName: ARM Deployment
     steps:
-    - checkout: self
-
     - task: AzureResourceManagerTemplateDeployment@3
-      displayName: Deploy ARM - WebApp
       inputs:
-        deploymentScope: Resource Group
-        azureResourceManagerConnection: ar01com
-        action: Create Or Update Resource Group
-        resourceGroupName: $(resourceGroupName)
-        location: $(location)
-        templateLocation: Linked artifact
-        csmFile: $(templateFile)
-        csmParametersFile: $(parametersFile)
-        deploymentMode: Incremental
-        deploymentName: paas
+        deploymentScope: 'Resource Group'
+        azureResourceManagerConnection: 'AZURE_Conn'
+        subscriptionId: '130e18eb-a3ff-4995-a7f8-14aec2c06c47'
+        action: 'Create Or Update Resource Group'
+        resourceGroupName: '$(resourceGroupName)'
+        location: '$(location)'
+        templateLocation: 'Linked artifact'
+        csmFile: '$(templateFile)'
+        csmParametersFile: '$(parametersFile)'
+        deploymentMode: 'Incremental'
+
+- stage: DeployApp
+  dependsOn: DeployInfrastructure
+  jobs:
+  - job: Publish_HTML
+    steps:
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: 'AZURE_Conn'
+        appType: 'webApp'
+        appName: 'lmliacpaas002'
+        package: 'src'
