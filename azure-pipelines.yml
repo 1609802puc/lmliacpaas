@@ -17,6 +17,8 @@ stages:
 - stage: DeployInfrastructure
   jobs:
   - job: ARM_Deployment
+  workspace:
+    clean: all
     steps:
     - task: AzureResourceManagerTemplateDeployment@3
       inputs:
