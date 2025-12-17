@@ -27,12 +27,34 @@
       "properties": {
         "reserved": false
       }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[parameters('siteName')]",
+      "location": "[parameters('location')]",
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', concat(parameters('siteName'), '-plan'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', concat(parameters('siteName'), '-plan'))]",
+        "httpsOnly": true
+      }
     }
   ],
   "outputs": {
     "appServicePlanName": {
       "type": "string",
       "value": "[concat(parameters('siteName'), '-plan')]"
+    },
+    "webAppName": {
+      "type": "string",
+      "value": "[parameters('siteName')]"
+    },
+    "webAppUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('siteName'), '.azurewebsites.net')]"
     }
   }
 }
