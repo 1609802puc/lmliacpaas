@@ -11,7 +11,7 @@ variables:
   location: centralus
   templateFile: arm-templates/webapp-template.json
   parametersFile: arm-templates/webapp-parameters.json
-  webAppName: lmliacpaas001
+  webAppName: lmliacpaas002
 
 stages:
 - stage: DeployInfrastructure
