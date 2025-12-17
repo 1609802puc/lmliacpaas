@@ -37,8 +37,8 @@ stages:
   - job: Publish_HTML
     steps:
     - task: AzureWebApp@1
-    NODE_TLS_REJECT_UNAUTHORIZED: '0'
-    azureSubscription: 'ar01com'
-    appType: 'webApp'
-    appName: 'lmliacpaas002'
-    package: '$(Build.ArtifactStagingDirectory)\site.zip'
+      inputs:
+        azureSubscription: 'ar01com'
+        appType: 'webApp'
+        appName: 'lmliacpaas002'
+        package: 'src'
