@@ -2,86 +2,60 @@ trigger:
 - main
 
 pool:
-  name: Default_2 # Nome do agent pool
+  name: Default_2
   demands:
-    - Agent.Name -equals ag001  # Força o uso do agente específico
-  vmImage: 'windows-latest'
+    - Agent.Name -equals ag001
 
 variables:
+  azureServiceConnection: ar01com
   resourceGroupName: rg-iac-webapp
   location: centralus
+  siteName: lmliacpaas002
   templateFile: arm-templates/webapp-template.json
   parametersFile: arm-templates/webapp-parameters.json
 
 stages:
+# =========================
+# STAGE 1 - INFRA
+# =========================
 - stage: DeployInfrastructure
+  displayName: Deploy Infraestrutura
   jobs:
   - job: ARM_Deployment
+    displayName: Deploy ARM
     steps:
+    - checkout: self
+
     - task: AzureResourceManagerTemplateDeployment@3
+      displayName: Criar ou atualizar infraestrutura
       inputs:
-        deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '$(azureServiceConnection)'
-        subscriptionId: 'trigger:
-- main
+        deploymentScope: Resource Group
+        azureResourceManagerConnection: $(azureServiceConnection)
+        subscriptionId: b32b3763-730f-4373-be10-a3c6f53ecd3a
+        action: Create Or Update Resource Group
+        resourceGroupName: $(resourceGroupName)
+        location: $(location)
+        templateLocation: Linked artifact
+        csmFile: $(templateFile)
+        csmParametersFile: $(parametersFile)
+        deploymentMode: Incremental
 
-pool:
-  name: Default # Nome do agent pool
-  demands:
-    - Agent.Name -equals ag001  # Força o uso do agente específico
-  vmImage: 'windows-latest'
-
-variables:
-  resourceGroupName: rg-iac-webapp
-  location: centralus
-  templateFile: arm-templates/webapp-template.json
-  parametersFile: arm-templates/webapp-parameters.json
-
-stages:
-- stage: DeployInfrastructure
-  jobs:
-  - job: ARM_Deployment
-    steps:
-    - task: AzureResourceManagerTemplateDeployment@3
-      inputs:
-        deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: '$(azureServiceConnection)'
-        subscriptionId: 'b32b3763-730f-4373-be10-a3c6f53ecd3a'
-        action: 'Create Or Update Resource Group'
-        resourceGroupName: '$(resourceGroupName)'
-        location: '$(location)'
-        templateLocation: 'Linked artifact'
-        csmFile: '$(templateFile)'
-        csmParametersFile: '$(parametersFile)'
-        deploymentMode: 'Incremental'
-
+# =========================
+# STAGE 2 - APP
+# =========================
 - stage: DeployApp
+  displayName: Deploy Aplicação
   dependsOn: DeployInfrastructure
   jobs:
   - job: Publish_HTML
+    displayName: Publicar HTML
     steps:
-    - task: AzureWebApp@1
-      inputs:
-        azureSubscription: '$(azureServiceConnection)'
-        appType: 'webApp'
-        appName: 'lmliacpaas002'
-        package: 'src''
-        action: 'Create Or Update Resource Group'
-        resourceGroupName: '$(resourceGroupName)'
-        location: '$(location)'
-        templateLocation: 'Linked artifact'
-        csmFile: '$(templateFile)'
-        csmParametersFile: '$(parametersFile)'
-        deploymentMode: 'Incremental'
+    - checkout: self
 
-- stage: DeployApp
-  dependsOn: DeployInfrastructure
-  jobs:
-  - job: Publish_HTML
-    steps:
     - task: AzureWebApp@1
+      displayName: Deploy Web App
       inputs:
-        azureSubscription: 'AZURE_Conn'
-        appType: 'webApp'
-        appName: 'lmliacpaas002'
-        package: 'src'
+        azureSubscription: $(azureServiceConnection)
+        appType: webApp
+        appName: $(siteName)
+        package: src
