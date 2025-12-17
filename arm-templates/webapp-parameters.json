@@ -2,14 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "siteName": {
-      "value": "lmliacpaas002"
+    "webAppName": {
+      "value": "lmliacpaas001"
     },
     "location": {
       "value": "centralus"
     },
-    "skuName": {
-      "value": "F1"
+    "appServicePlanName": {
+      "value": "asp-lmliacpaas001"
     }
   }
 }
