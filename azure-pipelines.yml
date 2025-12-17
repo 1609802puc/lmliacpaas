@@ -2,27 +2,51 @@ trigger:
 - main
 
 pool:
-  name: Default_2 # Nome do agent pool
-  demands:
-    - Agent.Name -equals ag001  # Força o uso do agente específico
-
+  vmImage: 'windows-latest'
 
 variables:
-  resourceGroupName: rg-iac-webapp
-  location: centralus
+  azureSubscription: 'ar01com'          # <- nome da sua Service Connection no Azure DevOps
+  resourceGroupName: 'rg-iac-webapp'
+  location: 'centralus'
+  siteName: 'lmliacpaas001_171225'      # <- tem que bater com o parameters.json (ou você pode remover do parameters e usar só aqui)
   templateFile: 'arm-templates/webapp-template.json'
   parametersFile: 'arm-templates/webapp-parameters.json'
 
 stages:
-- stage: DeployInfrastructure
+- stage: DeployInfra
+  displayName: 'Provisionar PaaS (App Service)'
   jobs:
-  - job: ARM_Deployment
+  - job: Deploy
+    displayName: 'Criar RG + Deploy ARM'
     steps:
+    - checkout: self
+
+    - task: AzureCLI@2
+      displayName: 'Criar Resource Group (se não existir)'
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          $rg = "$(resourceGroupName)"
+          $loc = "$(location)"
+          Write-Host "Verificando RG: $rg"
+
+          az group exists --name $rg | Out-Host
+          $exists = az group exists --name $rg
+
+          if ($exists -eq "true") {
+            Write-Host "RG já existe: $rg"
+          } else {
+            Write-Host "Criando RG: $rg em $loc"
+            az group create --name $rg --location $loc
+          }
+
     - task: AzureResourceManagerTemplateDeployment@3
+      displayName: 'Deploy ARM (criar App Service)'
       inputs:
         deploymentScope: 'Resource Group'
-        azureResourceManagerConnection: 'ar01com'
-        subscriptionId: '130e18eb-a3ff-4995-a7f8-14aec2c06c47'
+        azureResourceManagerConnection: '$(azureSubscription)'
         action: 'Create Or Update Resource Group'
         resourceGroupName: '$(resourceGroupName)'
         location: '$(location)'
@@ -30,15 +54,30 @@ stages:
         csmFile: '$(templateFile)'
         csmParametersFile: '$(parametersFile)'
         deploymentMode: 'Incremental'
+        deploymentName: 'paas-webapp-deployment'
 
-- stage: DeployApp
-  dependsOn: DeployInfrastructure
+- stage: DeploySite
+  displayName: 'Publicar site (index.html)'
+  dependsOn: DeployInfra
   jobs:
-  - job: Publish_HTML
+  - job: Publish
+    displayName: 'Zip + Deploy'
     steps:
-    - task: AzureWebApp@1
+    - checkout: self
+
+    - task: ArchiveFiles@2
+      displayName: 'Compactar pasta src/'
       inputs:
-        azureSubscription: 'ar01com'
+        rootFolderOrFile: 'src'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)\site.zip'
+        replaceExistingArchive: true
+
+    - task: AzureWebApp@1
+      displayName: 'Publicar no Azure Web App'
+      inputs:
+        azureSubscription: '$(azureSubscription)'
         appType: 'webApp'
-        appName: 'lmliacpaas001_171225'
-        package: 'src'
+        appName: '$(siteName)'
+        package: '$(Build.ArtifactStagingDirectory)\site.zip'
