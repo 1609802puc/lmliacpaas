@@ -30,9 +30,7 @@ stages:
         csmFile: '$(templateFile)'
         csmParametersFile: '$(parametersFile)'
         deploymentMode: 'Incremental'
-
-steps:
-- script: |
+    - script: |
     echo "##vso[task.setvariable variable=NODE_TLS_REJECT_UNAUTHORIZED]0"
   displayName: Ignore SSL validation
 
