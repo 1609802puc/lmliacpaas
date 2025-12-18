@@ -31,6 +31,11 @@ stages:
         csmParametersFile: '$(parametersFile)'
         deploymentMode: 'Incremental'
 
+steps:
+- script: |
+    echo "##vso[task.setvariable variable=NODE_TLS_REJECT_UNAUTHORIZED]0"
+  displayName: Ignore SSL validation
+
 - stage: DeployApp
   dependsOn: DeployInfrastructure
   jobs:
@@ -42,6 +47,3 @@ stages:
         appType: 'webApp'
         appName: 'lmliacpaas002'
         package: 'src'
-     - script: | 
-     echo "##vso[task.setvariable variable=NODE_TLS_REJECT_UNAUTHORIZED]0"
-  displayName: Ignore SSL validation
