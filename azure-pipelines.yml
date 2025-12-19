@@ -11,7 +11,7 @@ variables:
   location: centralus
   templateFile: 'arm-templates/webapp-template.json'
   parametersFile: 'arm-templates/webapp-parameters.json'
-  webAppName: 'lmliacpaas001-qvq7mwuoeku4k'   # <- COLOQUE AQUI O NOME EXATO DO WEBAPP QUE VOCÊ ABRE NO BROWSER
+  webAppName: 'lmliacpaas001-qvq7mwuoeku4k'
 
 stages:
 - stage: DeployInfrastructure
@@ -45,7 +45,6 @@ stages:
     steps:
     - checkout: self
 
-    # Empacota a pasta src em ZIP
     - task: ArchiveFiles@2
       displayName: 'Zip site (src)'
       inputs:
@@ -55,11 +54,15 @@ stages:
         archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
         replaceExistingArchive: true
 
-    # Deploy do ZIP para o WebApp
-    - task: AzureWebApp@1
-      displayName: 'Deploy ZIP to Azure WebApp'
+    - task: AzureCLI@2
+      displayName: 'Deploy ZIP via Azure CLI (config-zip)'
       inputs:
         azureSubscription: 'ar01com'
-        appType: 'webApp'
-        appName: '$(webAppName)'
-        package: '$(Build.ArtifactStagingDirectory)/site.zip'
+        scriptType: 'ps'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az --version
+          az webapp deployment source config-zip `
+            --resource-group "$(resourceGroupName)" `
+            --name "$(webAppName)" `
+            --src "$(Build.ArtifactStagingDirectory)\site.zip"
