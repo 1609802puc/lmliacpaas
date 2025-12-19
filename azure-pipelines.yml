@@ -9,13 +9,12 @@ pool:
 variables:
   resourceGroupName: rg-iac-webapp
   location: centralus
-
-  # Caminhos dos ARM templates
-  templateFile: arm-templates/webapp-template.json
-  parametersFile: arm-templates/webapp-parameters.json
+  templateFile: 'arm-templates/webapp-template.json'
+  parametersFile: 'arm-templates/webapp-parameters.json'
+  webAppName: 'lmliacpaas001-qvq7mwuoeku4k'   # <- COLOQUE AQUI O NOME EXATO DO WEBAPP QUE VOCÊ ABRE NO BROWSER
 
 stages:
-- stage: DeployInfra
+- stage: DeployInfrastructure
   displayName: 'Deploy Infra (ARM)'
   jobs:
   - job: ARM_Deployment
@@ -35,3 +34,32 @@ stages:
         csmFile: '$(templateFile)'
         csmParametersFile: '$(parametersFile)'
         deploymentMode: 'Incremental'
+        deploymentName: 'webapp-deployment'
+
+- stage: DeployApp
+  displayName: 'Deploy App (HTML)'
+  dependsOn: DeployInfrastructure
+  jobs:
+  - job: Publish_HTML
+    displayName: 'Publish HTML to WebApp'
+    steps:
+    - checkout: self
+
+    # Empacota a pasta src em ZIP
+    - task: ArchiveFiles@2
+      displayName: 'Zip site (src)'
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/src'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
+        replaceExistingArchive: true
+
+    # Deploy do ZIP para o WebApp
+    - task: AzureWebApp@1
+      displayName: 'Deploy ZIP to Azure WebApp'
+      inputs:
+        azureSubscription: 'ar01com'
+        appType: 'webApp'
+        appName: '$(webAppName)'
+        package: '$(Build.ArtifactStagingDirectory)/site.zip'
