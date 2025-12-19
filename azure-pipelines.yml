@@ -11,9 +11,14 @@ variables:
   location: centralus
   templateFile: 'arm-templates/webapp-template.json'
   parametersFile: 'arm-templates/webapp-parameters.json'
+
+  # ⚠️ NOME EXATO DO WEB APP (igual ao Portal Azure)
   webAppName: 'lmliacpaas001-qvq7mwuoeku4k'
 
 stages:
+# =========================================================
+# STAGE 1 - DEPLOY DA INFRAESTRUTURA (ARM)
+# =========================================================
 - stage: DeployInfrastructure
   displayName: 'Deploy Infra (ARM)'
   jobs:
@@ -36,6 +41,9 @@ stages:
         deploymentMode: 'Incremental'
         deploymentName: 'webapp-deployment'
 
+# =========================================================
+# STAGE 2 - DEPLOY DO SITE HTML
+# =========================================================
 - stage: DeployApp
   displayName: 'Deploy App (HTML)'
   dependsOn: DeployInfrastructure
@@ -45,6 +53,9 @@ stages:
     steps:
     - checkout: self
 
+    # -----------------------------------------------------
+    # Compacta o conteúdo HTML (PASTA src)
+    # -----------------------------------------------------
     - task: ArchiveFiles@2
       displayName: 'Zip site (src)'
       inputs:
@@ -54,6 +65,9 @@ stages:
         archiveFile: '$(Build.ArtifactStagingDirectory)/site.zip'
         replaceExistingArchive: true
 
+    # -----------------------------------------------------
+    # Deploy via Azure CLI (COM BYPASS DE SSL)
+    # -----------------------------------------------------
     - task: AzureCLI@2
       displayName: 'Deploy ZIP via Azure CLI (config-zip)'
       inputs:
@@ -61,8 +75,13 @@ stages:
         scriptType: 'ps'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az --version
+          Write-Host ">>> Desabilitando verificação SSL (proxy corporativo)"
+          $env:AZURE_CLI_DISABLE_CONNECTION_VERIFICATION = "1"
+
+          Write-Host ">>> Publicando site no Azure Web App"
           az webapp deployment source config-zip `
             --resource-group "$(resourceGroupName)" `
             --name "$(webAppName)" `
             --src "$(Build.ArtifactStagingDirectory)\site.zip"
+
+          Write-Host ">>> Deploy finalizado com sucesso"
